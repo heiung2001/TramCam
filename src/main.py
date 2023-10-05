@@ -12,15 +12,15 @@ from datasets import load_metric
 if __name__ == "__main__":
     # tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
     model = MRCQuestionAnswering.from_pretrained("xlm-roberta-large",
-                                                 cache_dir='./model-bin/cache',
+                                                 cache_dir='./models/cache',
                                                  #local_files_only=True
                                                 )
     print(model)
     print(model.config)
 
     train_dataset, valid_dataset = data_loader.get_dataloader(
-        train_path='./data-bin/processed/train.dataset',
-        valid_path='./data-bin/processed/valid.dataset'
+        train_path='../data/processed/train.dataset',
+        valid_path='../data/processed/valid.dataset'
     )
 
     training_args = TrainingArguments("model-bin/test",

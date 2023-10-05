@@ -8,7 +8,7 @@ from transformers import AutoTokenizer
 from nltk import word_tokenize
 
 tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-large",
-                                          cache_dir='./model-bin/cache',
+                                          cache_dir='./models/cache',
                                           #local_files_only=True
                                          )
 
@@ -178,7 +178,7 @@ def get_dataloader(train_path, valid_path, batch_size=2, num_proc=10):
 
 
 def build_target_dictionary():
-    data_set = datasets.load_from_disk('./data-bin/processed/train.dataset')
+    data_set = datasets.load_from_disk('../../data/processed/train.dataset')
     labels = set([item['language'] for item in data_set])
     labels2id = {tag: idx for idx, tag in enumerate(labels)}
     # id2labels = {idx: tag for tag, idx in labels2id.items()}
@@ -192,18 +192,18 @@ def build_target_dictionary():
     return labels2id, tags2id
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
-    train_dataset, valid_dataset = get_dataloader(
-        train_path='../data-bin/processed/train.dataset',
-        valid_path='../data-bin/processed/valid.dataset'
-    )
-    from tqdm import tqdm
+#     train_dataset, valid_dataset = get_dataloader(
+#         train_path='../data-bin/processed/train.dataset',
+#         valid_path='../data-bin/processed/valid.dataset'
+#     )
+#     from tqdm import tqdm
 
-    for batch in tqdm(train_dataset):
-        pass
-        # print(batch['tgt_words_ids'].shape)
+#     for batch in tqdm(train_dataset):
+#         pass
+#         # print(batch['tgt_words_ids'].shape)
 
-    for batch in tqdm(valid_dataset):
-        pass
-        # print(batch['tgt_words_ids'].shape)
+#     for batch in tqdm(valid_dataset):
+#         pass
+#         # print(batch['tgt_words_ids'].shape)
