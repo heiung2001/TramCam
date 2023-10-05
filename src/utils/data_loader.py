@@ -178,7 +178,7 @@ def get_dataloader(train_path, valid_path, batch_size=2, num_proc=10):
 
 
 def build_target_dictionary():
-    data_set = datasets.load_from_disk('../../data/processed/train.dataset')
+    data_set = datasets.load_from_disk('../data/processed/train.dataset')
     labels = set([item['language'] for item in data_set])
     labels2id = {tag: idx for idx, tag in enumerate(labels)}
     # id2labels = {idx: tag for tag, idx in labels2id.items()}

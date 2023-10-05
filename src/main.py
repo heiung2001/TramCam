@@ -19,8 +19,8 @@ if __name__ == "__main__":
     print(model.config)
 
     train_dataset, valid_dataset = data_loader.get_dataloader(
-        train_path='../data/processed/train.dataset',
-        valid_path='../data/processed/valid.dataset'
+        train_path='data/processed/train.dataset',
+        valid_path='data/processed/valid.dataset'
     )
 
     training_args = TrainingArguments("model-bin/test",
