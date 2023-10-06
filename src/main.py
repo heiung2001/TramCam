@@ -18,9 +18,9 @@ def print_trainable_parameters(model):
     all_param = 0
     for _, param in model.named_parameters():
         all_param += param.numel()
-        if param.required_grad:
+        if param.requires_grad:
             trainable_params += param.numel()
-            print(f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param}") 
+    print(f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param}") 
 
 
 if __name__ == "__main__":
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     peft_config = LoraConfig(
         task_type='CAUSAL_LM',
         r=args.lora_rank,
-        target_modules=["query_key_value"],
+        target_modules=["query", "key", "value"],
         lora_dropout=args.lora_dropout,
         bias=args.lora_bias
     )
