@@ -30,9 +30,9 @@ if __name__ == "__main__":
                                       learning_rate=1e-4,
                                       warmup_ratio=0.05,
                                       weight_decay=0.01,
-                                      per_device_train_batch_size=1,
-                                      per_device_eval_batch_size=1,
-                                      gradient_accumulation_steps=1,
+                                      per_device_train_batch_size=4,
+                                      per_device_eval_batch_size=4,
+                                      gradient_accumulation_steps=4,
                                       logging_dir='./log',
                                       logging_steps=5,
                                       label_names=['start_positions',
@@ -48,6 +48,8 @@ if __name__ == "__main__":
                                       #eval_steps=1,
                                       #evaluation_strategy="steps",
                                       evaluation_strategy="epoch",
+                                      fp16=True,
+                                      dataloader_num_workers=2
                                       )
 
     trainer = Trainer(
