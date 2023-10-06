@@ -1,10 +1,21 @@
-from transformers.models.roberta.modeling_roberta import *
+# from transformers.models.roberta.modeling_roberta import *
+import torch
+import torch.nn as nn
+
+from torch.nn import CrossEntropyLoss
+
+from transformers.models.roberta import RobertaModel
+from transformers.models.roberta.modeling_roberta import RobertaPreTrainedModel
+from transformers.models.roberta.configuration_roberta import RobertaConfig
+from transformers.modeling_outputs import QuestionAnsweringModelOutput
+
+
 _CHECKPOINT_FOR_DOC = "roberta-base"
 _CONFIG_FOR_DOC = "RobertaConfig"
 _TOKENIZER_FOR_DOC = "RobertaTokenizer"
 
 
-class MRCQuestionAnswering(RobertaPreTrainedModel):
+class MRCwithRoberta(RobertaPreTrainedModel):
     config_class = RobertaConfig
 
     def _reorder_cache(self, past, beam_idx):
