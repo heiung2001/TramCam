@@ -6,12 +6,13 @@ from evaluate import load
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
 from nltk import word_tokenize
+from datasets import Dataset
+
 
 tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-large",
                                           cache_dir='./models/cache',
                                           #local_files_only=True
                                          )
-
 
 def compute_metrics(eval_pred):
     metric = load("squad", cache_dir='./log/metric')
@@ -149,11 +150,17 @@ def tokenize_function(example):
     }
 
 
-def get_dataloader(train_path, valid_path, batch_size=2, num_proc=10):
-    train_set = datasets.load_from_disk(train_path)
-    valid_set = datasets.load_from_disk(valid_path)
+def get_dataloader(train_path, valid_path, batch_size=2, num_proc=10, debug=False):
+    if debug:
+        train_set = Dataset.from_dict(datasets.load_from_disk(train_path)[:50])
+        valid_set = Dataset.from_dict(datasets.load_from_disk(valid_path)[:50])
+    else:
+        train_set = datasets.load_from_disk(train_path)
+        valid_set = datasets.load_from_disk(valid_path)
+
     print("Train set: ", len(train_set))
     print("Valid set: ", len(valid_set))
+
     # unique_tags = set(tag for doc in tags for tag in train_set)
     train_set = train_set.shuffle().map(tokenize_function, batched=False, num_proc=num_proc).filter(
         lambda example: example['valid'], num_proc=num_proc)
@@ -164,6 +171,7 @@ def get_dataloader(train_path, valid_path, batch_size=2, num_proc=10):
 
     print("Train set: ", len(train_set))
     print("Valid set: ", len(valid_set))
+    
     return train_set, valid_set
     #return train_set, valid_set.shard(500, 0)
     #
