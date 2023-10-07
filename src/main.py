@@ -8,9 +8,9 @@ from transformers import Trainer
 from utils import data_loader
 from datasets import load_metric
 
-from peft.mapping import get_peft_model, get_peft_config
+from peft.mapping import get_peft_model
 from peft.tuners.lora import LoraConfig
-from peft.utils.peft_types import PeftType, TaskType
+from peft.utils.config import TaskType
 
 
 def print_trainable_parameters(model):
@@ -29,10 +29,11 @@ if __name__ == "__main__":
 
     # general
     parser.add_argument('-base_model', default='xlm-roberta-large', help='Model to fine-tune')
-    parser.add_argument('-use_fp16', default=True, choices=[True, False], help="Whether to use fp16 or not")
+    parser.add_argument('-use_fp16', default=False, choices=[True, False], help="Whether to use fp16 or not")
     parser.add_argument('-save_strategy', default='epoch', choices=['epoch', 'steps'])
     parser.add_argument('-eval_strategy', default='epoch', choices=['epoch, steps'])
     parser.add_argument('-logging_steps', default=100, type=int, help='Logging after # steps')
+    parser.add_argument('-debug', default=False, type=bool, help='Enable debug mode')
 
     # hyperparameters
     parser.add_argument('-num_epochs', default=5, type=int, help="Number of epochs")
@@ -70,7 +71,7 @@ if __name__ == "__main__":
     print(model.config)
 
     peft_config = LoraConfig(
-        task_type='CAUSAL_LM',
+        task_type=TaskType.QUESTION_ANS,
         r=args.lora_rank,
         target_modules=["query", "key", "value"],
         lora_dropout=args.lora_dropout,
