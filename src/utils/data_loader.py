@@ -61,8 +61,8 @@ def data_collator(samples):
     #                 sample))
 
     for sample in samples:
-        start_idx = sum(sample['words_lengths'][:sample['start_idx']])
-        end_idx = sum(sample['words_lengths'][:sample['end_idx'] + 1])
+        start_idx = sum(sample['words_lengths'][:sample['start_positions']])
+        end_idx = sum(sample['words_lengths'][:sample['end_positions'] + 1])
         sample['span_answer_ids'] = sample['input_ids'][start_idx:end_idx]
 
     def collate_tokens(values, pad_idx, eos_idx=None, left_pad=False, move_eos_to_beginning=False):
@@ -88,10 +88,9 @@ def data_collator(samples):
     for i in range(len(samples)):
         attention_mask[i][:len(samples[i]['input_ids'])] = 1
     words_lengths = collate_tokens([torch.tensor(item['words_lengths']) for item in samples], pad_idx=0)
-    answer_start = collate_tokens([torch.tensor([item['start_idx']]) for item in samples], pad_idx=0)
-    answer_end = collate_tokens([torch.tensor([item['end_idx']]) for item in samples], pad_idx=0)
-    span_answer_ids = collate_tokens([torch.tensor(item['span_answer_ids']) for item in samples],
-                                     pad_idx=-100)
+    answer_start = collate_tokens([torch.tensor([item['start_positions']]) for item in samples], pad_idx=0)
+    answer_end = collate_tokens([torch.tensor([item['end_positions']]) for item in samples], pad_idx=0)
+    span_answer_ids = collate_tokens([torch.tensor(item['span_answer_ids']) for item in samples], pad_idx=-100)
 
     batch_samples = {
         'input_ids': input_ids,
@@ -142,10 +141,8 @@ def tokenize_function(example):
     return {
         "input_ids": input_ids,
         "words_lengths": words_lengths,
-        "start_idx": (example['answer_word_start_idx'] + len(question_sub_words_ids)) if len(
-            example["answer_text"]) > 0 else 0,
-        "end_idx": (example['answer_word_end_idx'] + len(question_sub_words_ids)) if len(
-            example["answer_text"]) > 0 else 0,
+        "start_positions": (example['answer_word_start_idx'] + len(question_sub_words_ids)) if len(example["answer_text"]) > 0 else 0,
+        "end_positions": (example['answer_word_end_idx'] + len(question_sub_words_ids)) if len(example["answer_text"]) > 0 else 0,
         "valid": valid
     }
 
