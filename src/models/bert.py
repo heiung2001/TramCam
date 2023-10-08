@@ -1,69 +1,43 @@
-# from transformers.models.roberta.modeling_roberta import *
 import torch
 import torch.nn as nn
 
-from torch.nn import CrossEntropyLoss
-
-from transformers.models.roberta import RobertaModel
-from transformers.models.roberta.modeling_roberta import RobertaPreTrainedModel
-from transformers.models.roberta.configuration_roberta import RobertaConfig
+from transformers.models.bert import BertModel
+from transformers.models.bert.modeling_bert import BertPreTrainedModel
+from transformers.models.bert.configuration_bert import BertConfig
 from transformers.modeling_outputs import QuestionAnsweringModelOutput
 
 
-_CHECKPOINT_FOR_DOC = "roberta-base"
-_CONFIG_FOR_DOC = "RobertaConfig"
-_TOKENIZER_FOR_DOC = "RobertaTokenizer"
-
-
-class QuestionAnsweringWithXLMRoberta(RobertaPreTrainedModel):
-    config_class = RobertaConfig
-
-    def _reorder_cache(self, past, beam_idx):
-        pass
-
-    _keys_to_ignore_on_load_unexpected = [r"pooler"]
-    _keys_to_ignore_on_load_missing = [r"position_ids"]
+class QuestionAnsweringWithBert(BertPreTrainedModel):
+    config_class = BertConfig
 
     def __init__(self, config):
         super().__init__(config)
         self.num_labels = config.num_labels
 
-        self.roberta = RobertaModel(config, add_pooling_layer=False)
+        self.bert = BertModel(config, add_pooling_layer=False)
         self.qa_outputs = nn.Linear(config.hidden_size, config.num_labels)
-
-        self.init_weights()
-
-    def forward(
-            self,
-            input_ids=None,
-            words_lengths=None,
-            start_idx=None,
-            end_idx=None,
-            attention_mask=None,
-            token_type_ids=None,
-            position_ids=None,
-            head_mask=None,
-            inputs_embeds=None,
-            start_positions=None,
-            end_positions=None,
-            span_answer_ids=None,
-            output_attentions=None,
-            output_hidden_states=None,
-            return_dict=None,
-    ):
-        r"""
-        start_positions (:obj:`torch.LongTensor` of shape :obj:`(batch_size,)`, `optional`):
-            Labels for position (index) of the start of the labelled span for computing the token classification loss.
-            Positions are clamped to the length of the sequence (:obj:`sequence_length`). Position outside of the
-            sequence are not taken into account for computing the loss.
-        end_positions (:obj:`torch.LongTensor` of shape :obj:`(batch_size,)`, `optional`):
-            Labels for position (index) of the end of the labelled span for computing the token classification loss.
-            Positions are clamped to the length of the sequence (:obj:`sequence_length`). Position outside of the
-            sequence are not taken into account for computing the loss.
-        """
+    
+        self.post_init()
+    
+    def forward(self,
+                input_ids=None,
+                words_lengths=None,
+                start_idx=None,
+                end_idx=None,
+                attention_mask=None,
+                token_type_ids=None,
+                position_ids=None,
+                head_mask=None,
+                inputs_embeds=None,
+                start_positions=None,
+                end_positions=None,
+                span_answer_ids=None,
+                output_attentions=None,
+                output_hidden_states=None,
+                return_dict=None):
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
-        outputs = self.roberta(
+        outputs = self.bert(
             input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
@@ -72,7 +46,7 @@ class QuestionAnsweringWithXLMRoberta(RobertaPreTrainedModel):
             inputs_embeds=inputs_embeds,
             output_attentions=output_attentions,
             output_hidden_states=output_hidden_states,
-            return_dict=return_dict,
+            return_dict=return_dict
         )
 
         sequence_output = outputs[0]
@@ -111,7 +85,7 @@ class QuestionAnsweringWithXLMRoberta(RobertaPreTrainedModel):
             start_positions = start_positions.clamp(0, ignored_index)
             end_positions = end_positions.clamp(0, ignored_index)
 
-            loss_fct = CrossEntropyLoss(ignore_index=ignored_index)
+            loss_fct = nn.CrossEntropyLoss(ignore_index=ignored_index)
             start_loss = loss_fct(start_logits, start_positions)
             end_loss = loss_fct(end_logits, end_positions)
             total_loss = (start_loss + end_loss) / 2
@@ -127,3 +101,4 @@ class QuestionAnsweringWithXLMRoberta(RobertaPreTrainedModel):
             hidden_states=outputs.hidden_states,
             attentions=outputs.attentions,
         )
+

@@ -2,9 +2,11 @@ import numpy as np
 import os
 import argparse
 
-from transformers import TrainingArguments
-from models.xlm_roberta import MRCwithRoberta
-from transformers import Trainer
+from transformers import Trainer, TrainingArguments
+from transformers.models.auto import AutoTokenizer
+
+from models.xlm_roberta import QuestionAnsweringWithXLMRoberta
+from models.bert import QuestionAnsweringWithBert
 from utils import data_loader
 from datasets import load_metric
 
@@ -13,19 +15,18 @@ from peft.tuners.lora import LoraConfig
 from peft.utils.config import TaskType
 
 
-def print_trainable_parameters(model):
-    trainable_params = 0
-    all_param = 0
-    for _, param in model.named_parameters():
-        all_param += param.numel()
-        if param.requires_grad:
-            trainable_params += param.numel()
-    print(f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param}") 
-
-
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
+
+    # model
+    parser.add_argument('-model',
+                        default='QuestionAnsweringWithXLMRoberta',
+                        choices=['QuestionAnsweringWithXLMRoberta',
+                                 'QuestionAnsweringWithBert',
+                                 'QuestionAnsweringWithPhoBert'],
+                        type=str,
+                        help='Choose a model to finetune.')
 
     # general
     parser.add_argument('-base_model', default='xlm-roberta-large', help='Model to fine-tune')
@@ -33,15 +34,14 @@ if __name__ == "__main__":
     parser.add_argument('-save_strategy', default='epoch', choices=['epoch', 'steps'])
     parser.add_argument('-eval_strategy', default='epoch', choices=['epoch, steps'])
     parser.add_argument('-logging_steps', default=100, type=int, help='Logging after # steps')
-    parser.add_argument('-debug', default=False, type=bool, help='Enable debug mode')
 
     # hyperparameters
     parser.add_argument('-num_epochs', default=5, type=int, help="Number of epochs")
     parser.add_argument('-train_batch_size', default=8, type=int)
     parser.add_argument('-eval_batch_size', default=8, type=int)
+    parser.add_argument('-metric_for_best_model', default='f1', choices=['f1', 'EM'])
     parser.add_argument('-gradient_accumulation_steps', default=1, type=int)
     parser.add_argument('-num_workers', default=2, type=int)
-    parser.add_argument('-metric_for_best_model', default='f1', choices=['f1', 'EM'])
     parser.add_argument('-eval_steps', default=5, type=int)
 
     # optimizer
@@ -56,17 +56,36 @@ if __name__ == "__main__":
     parser.add_argument('-logging_path', default='./log')
 
     # lora
+    parser.add_argument('-use_lora', default=False, type=bool, help='Whether to use lora or not')
     parser.add_argument('-lora_rank', default=1, type=int)
     parser.add_argument('-lora_dropout', default=0.1, type=float)
     parser.add_argument('-lora_alpha', default=16)
     parser.add_argument('-lora_bias', default='none')
 
+    # debug
+    parser.add_argument('-debug', default=False, type=bool, help='Enable debug mode')
+
     args = parser.parse_args()
 
-    model = MRCwithRoberta.from_pretrained(pretrained_model_name_or_path=args.base_model,
-                                           cache_dir=args.pretrained_storage_path,
-                                           #local_files_only=True
-                                           )
+    model = globals()[args.model].from_pretrained(
+        pretrained_model_name_or_path=args.base_model,
+        # local_files_only=True,
+        cache_dir=args.pretrained_storage_path
+    )
+
+    if globals()[args.model] == 'QuestionAnsweringWithXLMRoberta':
+        tokenizer = AutoTokenizer.from_pretrained(
+            'xlm-roberta-large',
+            cache_dir=args.pretrained_storage_path)
+
+    elif globals()[args.model] == 'QuestionAnsweringWithBert':
+        tokenizer = AutoTokenizer.from_pretrained(
+            'bert-base-multilingual-uncased',
+            cache_dir=args.pretrained_storage_path)
+    
+    else:
+        raise ValueError("Tokenizer don't exist")
+
     print(model)
     print(model.config)
 
@@ -77,9 +96,10 @@ if __name__ == "__main__":
         lora_dropout=args.lora_dropout,
         bias=args.lora_bias
     )
-    model = get_peft_model(model, peft_config)
-    print_trainable_parameters(model)
-
+    
+    if args.use_lora:
+        model = get_peft_model(model, peft_config)
+        model.print_trainable_parameters()
 
     train_dataset, valid_dataset = data_loader.get_dataloader(
         train_path=args.train_path,
@@ -107,7 +127,6 @@ if __name__ == "__main__":
                                       metric_for_best_model=args.metric_for_best_model,
                                       load_best_model_at_end=True,
                                       save_total_limit=2,
-                                      #eval_steps=1,
                                       save_strategy=args.save_strategy,
                                       evaluation_strategy=args.eval_strategy,
                                       fp16=args.use_fp16,
