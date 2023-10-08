@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     # general
     parser.add_argument('-base_model', default='xlm-roberta-large', help='Model to fine-tune')
-    parser.add_argument('-use_fp16', default=False, choices=[True, False], help="Whether to use fp16 or not")
+    parser.add_argument('-use_fp16', default=False, type=bool, choices=[True, False], help="Whether to use fp16 or not")
     parser.add_argument('-save_strategy', default='epoch', choices=['epoch', 'steps'])
     parser.add_argument('-eval_strategy', default='epoch', choices=['epoch, steps'])
     parser.add_argument('-logging_steps', default=100, type=int, help='Logging after # steps')
@@ -73,12 +73,12 @@ if __name__ == "__main__":
         cache_dir=args.pretrained_storage_path
     )
 
-    if globals()[args.model] == 'QuestionAnsweringWithXLMRoberta':
+    if args.model == 'QuestionAnsweringWithXLMRoberta':
         tokenizer = AutoTokenizer.from_pretrained(
             'xlm-roberta-large',
             cache_dir=args.pretrained_storage_path)
 
-    elif globals()[args.model] == 'QuestionAnsweringWithBert':
+    elif args.model == 'QuestionAnsweringWithBert':
         tokenizer = AutoTokenizer.from_pretrained(
             'bert-base-multilingual-uncased',
             cache_dir=args.pretrained_storage_path)
