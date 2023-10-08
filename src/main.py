@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     # general
     parser.add_argument('-base_model', default='xlm-roberta-large', help='Model to fine-tune')
-    parser.add_argument('-use_fp16', default=True, action='store_false', help="Whether to use fp16 or not")
+    parser.add_argument('-use_fp16', default=False, action='store_true', help="Whether to use fp16 or not")
     parser.add_argument('-save_strategy', default='epoch', choices=['epoch', 'steps'])
     parser.add_argument('-eval_strategy', default='epoch', choices=['epoch, steps'])
     parser.add_argument('-logging_steps', default=100, type=int, help='Logging after # steps')
@@ -56,14 +56,14 @@ if __name__ == "__main__":
     parser.add_argument('-logging_path', default='./log')
 
     # lora
-    parser.add_argument('-use_lora', default=False, type=bool, action='store_true', help='Whether to use lora or not')
+    parser.add_argument('-use_lora', default=False, action='store_true', help='Whether to use lora or not')
     parser.add_argument('-lora_rank', default=1, type=int)
     parser.add_argument('-lora_dropout', default=0.1, type=float)
     parser.add_argument('-lora_alpha', default=16)
     parser.add_argument('-lora_bias', default='none')
 
     # debug
-    parser.add_argument('-debug', default=False, type=bool, action='store_true', help='Enable debug mode')
+    parser.add_argument('-debug', default=False, action='store_true', help='Enable debug mode')
 
     args = parser.parse_args()
 
